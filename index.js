@@ -10,10 +10,10 @@ const abi = '[{"constant":true,"inputs":[{"name":"_interfaceID","type":"bytes4"}
 
 console.log(`Instantiating ROPSTEN contract at ${address}`);
 
-var contract = new ethers.Contract(address, abi, provider);
+const contract = new ethers.Contract(address, abi, provider);
 
 const app = express();
 
-app.get('/', (req, res) => contract.nextHash().then((result) => res.send("" + result)));
+app.get('/', (req, res) => contract.nextHash().then((result) => res.send(`${result}`)));
 
 app.listen(27264, () => console.log('art-blocks-next-hash-endpoint => listening on http://localhost:3000/'));
