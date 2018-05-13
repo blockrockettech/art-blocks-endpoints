@@ -14,4 +14,4 @@ const app = express();
 
 app.get('/', (req, res) => contract.nextHash().then((result) => res.send("" + result)));
 
-app.listen(3000, () => console.log('art-blocks-next-hash-endpoint => listening on http://localhost:3000/'));
+app.listen(27264, () => console.log('art-blocks-next-hash-endpoint => listening on http://localhost:3000/'));
