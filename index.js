@@ -14,6 +14,12 @@ const contract = new ethers.Contract(address, abi, provider);
 
 const app = express();
 
-app.get('/', (req, res) => contract.nextHash().then((result) => res.send(`${result}`)));
+app.get('/', (req, res) => contract.nextHash()
+  .then((result) => {
+      let hashOnly = result[0];
+      res.send(`${hashOnly}`);
+  })
+  .catch(err => console.log(err))
+);
 
 app.listen(27264, () => console.log('art-blocks-next-hash-endpoint => listening on http://localhost:3000/'));

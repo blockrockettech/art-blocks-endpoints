@@ -6,5 +6,5 @@ Read only endpoints for the `art-blocks` project
 
 ## Running playground
 
-`npm start` starts an _express_ HTTP server on port 3000
+`npm start` starts an _express_ HTTP server on port 27264
 
