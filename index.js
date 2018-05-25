@@ -76,7 +76,15 @@ app.get('/:contractAddress/details', function (req, res) {
 });
 
 app.get('/', function (req, res) {
-    return res.json(`use /{contractAddress}`);
+    const address = '0x63093Ed9f978500eeDf57C06C490951708C96a97';
+    const contract = new ethers.Contract(address, abi, provider);
+
+    return contract.nextHash()
+        .then((result) => {
+            let hashOnly = result[0];
+            res.send(hashOnly);
+        })
+        .catch(err => console.log(err));
 });
 
 app.listen(27264, () => console.log('art-blocks-next-hash-endpoint => listening on http://localhost:27264/'));
