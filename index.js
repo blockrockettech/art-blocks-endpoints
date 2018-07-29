@@ -163,7 +163,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
     contract.lastPurchasedBlock(),
     contract.nextPurchasableBlocknumber(),
     contract.token(),
-    // contract.owner()
+    contract.onlyShowPurchased()
   ])
     .then((result) => {
       res.json({
@@ -173,7 +173,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
         lastPurchasedBlock: result[3].toString(10),
         nextPurchasableBlocknumber: result[4].toString(10),
         token: result[5],
-        // owner: result[6]
+        onlyShowPurchased: result[6]
       });
     })
     .catch(err => console.log(err));
