@@ -27,17 +27,67 @@ const getProvider = (networkName) => {
   return provider;
 };
 
-const abi = require('./sacAbi');
+const sacAbi = require('./sacAbi');
+const toknAbi = require('./toknAbi');
 
 const app = express();
 
 app.use(cors());
 
+app.get('/tokn/:network/:contractAddress/:tokenId', function (req, res) {
+
+  const address = req.params.contractAddress;
+  const network = req.params.network;
+  const tokenId = req.params.tokenId;
+  const contract = new ethers.Contract(address, toknAbi, getProvider(network));
+
+  return Promise.all([
+    contract.blockhashOf(tokenId),
+    contract.nicknameOf(tokenId),
+    contract.ownerOf(tokenId),
+    contract.tokenURI(tokenId),
+  ])
+    .then((result) => {
+      res.json({
+        blockhash: result[0].toString(10),
+        nickname: result[1].toString(10),
+        owner: result[2].toString(10),
+        tokenURI: result[3].toString(10),
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+app.get('/tokn/:network/:contractAddress', function (req, res) {
+
+  const address = req.params.contractAddress;
+  const network = req.params.network;
+  const contract = new ethers.Contract(address, toknAbi, getProvider(network));
+
+  return Promise.all([
+    contract.name(),
+    contract.symbol(),
+    contract.owner(),
+    contract.costOfToken(),
+    contract.purchaseTokenPointer(),
+  ])
+    .then((result) => {
+      res.json({
+        name: result[0].toString(10),
+        symbol: result[1].toString(10),
+        owner: result[2].toString(10),
+        costOfToken: result[3].toString(10),
+        purchaseTokenPointer: result[4].toString(10),
+      });
+    })
+    .catch(err => console.log(err));
+});
+
 app.get('/:network/:contractAddress', function (req, res) {
 
   const address = req.params.contractAddress;
   const network = req.params.network;
-  const contract = new ethers.Contract(address, abi, getProvider(network));
+  const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
   return contract.nextHash()
     .then((result) => {
@@ -51,7 +101,7 @@ app.get('/:network/:contractAddress/json', function (req, res) {
 
   const address = req.params.contractAddress;
   const network = req.params.network;
-  const contract = new ethers.Contract(address, abi, getProvider(network));
+  const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
   return contract.nextHash()
     .then((result) => {
@@ -65,7 +115,7 @@ app.get('/:network/:contractAddress/blocknumber', function (req, res) {
 
   const address = req.params.contractAddress;
   const network = req.params.network;
-  const contract = new ethers.Contract(address, abi, getProvider(network));
+  const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
   return contract.nextHash()
     .then((result) => {
@@ -78,7 +128,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
 
   const address = req.params.contractAddress;
   const network = req.params.network;
-  const contract = new ethers.Contract(address, abi, getProvider(network));
+  const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
   return Promise.all([
     contract.pricePerBlockInWei(),
@@ -105,7 +155,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
 
 app.get('/', function (req, res) {
   const address = '0x63093Ed9f978500eeDf57C06C490951708C96a97';
-  const contract = new ethers.Contract(address, abi, ropstenProvider);
+  const contract = new ethers.Contract(address, sacAbi, ropstenProvider);
 
   return contract.nextHash()
     .then((result) => {
