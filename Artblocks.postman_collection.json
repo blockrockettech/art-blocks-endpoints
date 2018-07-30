@@ -161,6 +161,56 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "TOKN & SAC (Ropsten) Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:27264/ropsten/sac/0x75397c652d40f0101252363c6f481461e2077a11/tokn/0x17a316a4e3f7d3c0289b78973c411ba47f1e8290",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "27264",
+					"path": [
+						"ropsten",
+						"sac",
+						"0x75397c652d40f0101252363c6f481461e2077a11",
+						"tokn",
+						"0x17a316a4e3f7d3c0289b78973c411ba47f1e8290"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "TOKN & SAC (Ropsten) Details (HARDCODED 3730171)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:27264/ropsten/sac/0x75397c652d40f0101252363c6f481461e2077a11/tokn/0x17a316a4e3f7d3c0289b78973c411ba47f1e8290/override/3730171",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "27264",
+					"path": [
+						"ropsten",
+						"sac",
+						"0x75397c652d40f0101252363c6f481461e2077a11",
+						"tokn",
+						"0x17a316a4e3f7d3c0289b78973c411ba47f1e8290",
+						"override",
+						"3730171"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
