@@ -226,6 +226,7 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
         })
         .catch(err => console.log(err));
 });
+
 app.get('/:network/sac/:sacAddress/tokn/:toknAddress/override/:tokenId', function (req, res) {
 
     const tokenId = req.params.tokenId;
