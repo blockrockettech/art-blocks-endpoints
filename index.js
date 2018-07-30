@@ -132,7 +132,7 @@ app.get('/:network/:contractAddress/json', function (req, res) {
     return contract.nextHash()
     .then((result) => {
         let hashOnly = result[0];
-        res.json(hashOnly);
+        res.json({hash: hashOnly});
     })
     .catch(err => console.log(err));
 });
