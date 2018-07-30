@@ -186,18 +186,6 @@ app.get('/:network/:contractAddress/details', function (req, res) {
         .catch(err => console.log(err));
 });
 
-app.get('/', function (req, res) {
-    const address = '0x63093Ed9f978500eeDf57C06C490951708C96a97';
-    const contract = new ethers.Contract(address, sacAbi, ropstenProvider);
-
-    return contract.nextHash()
-        .then((result) => {
-            let hashOnly = result[0];
-            res.send(hashOnly);
-        })
-        .catch(err => console.log(err));
-});
-
 app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
 
     const sacAddress = req.params.sacAddress;
