@@ -96,6 +96,7 @@ app.get('/tokn/:network/:contractAddress', function (req, res) {
     contract.owner(),
     contract.costOfToken(),
     contract.purchaseTokenPointer(),
+    contract.totalSupply(),
   ])
     .then((result) => {
       res.json({
@@ -104,6 +105,7 @@ app.get('/tokn/:network/:contractAddress', function (req, res) {
         owner: result[2].toString(10),
         costOfToken: result[3].toString(10),
         purchaseTokenPointer: result[4].toString(10),
+        totalSupply: result[5].toString(10),
       });
     })
     .catch(err => console.log(err));
@@ -150,6 +152,29 @@ app.get('/:network/:contractAddress/blocknumber', function (req, res) {
     .catch(err => console.log(err));
 });
 
+app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
+
+  const sacAddress = req.params.sacAddress;
+  const toknAddress = req.params.toknAddress;
+  const network = req.params.network;
+  const sacContract = new ethers.Contract(sacAddress, sacAbi, getProvider(network));
+  const toknContract = new ethers.Contract(toknAddress, toknAbi, getProvider(network));
+
+  return sacContract.nextHash()
+    .then((result) => {
+      let hashOnly = result[0];
+      return hashOnly;
+    })
+    .then((hash) => {
+      toknContract.tokenIdOf(hash)
+        .then((result) => {
+          const tokenId = result.toString(10);
+          res.json({hash: hash, tokenId: tokenId});
+        });
+    })
+    .catch(err => console.log(err));
+});
+
 app.get('/:network/:contractAddress/details', function (req, res) {
 
   const address = req.params.contractAddress;
@@ -163,7 +188,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
     contract.lastPurchasedBlock(),
     contract.nextPurchasableBlocknumber(),
     contract.token(),
-    contract.onlyShowPurchased()
+    contract.onlyShowPurchased(),
   ])
     .then((result) => {
       res.json({
@@ -173,7 +198,7 @@ app.get('/:network/:contractAddress/details', function (req, res) {
         lastPurchasedBlock: result[3].toString(10),
         nextPurchasableBlocknumber: result[4].toString(10),
         token: result[5],
-        onlyShowPurchased: result[6]
+        onlyShowPurchased: result[6],
       });
     })
     .catch(err => console.log(err));
