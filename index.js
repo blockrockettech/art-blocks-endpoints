@@ -211,8 +211,7 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
         .then((hash) => {
             return toknContract.tokenIdOf(hash)
                 .then((result) => {
-                    // const tokenId = result.toString(10);
-                    const tokenId = "3730171";
+                    const tokenId = result.toString(10);
                     return {hash, tokenId};
                 });
         })
