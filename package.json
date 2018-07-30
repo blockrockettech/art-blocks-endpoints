@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./index.js"
+    "start": "./node_modules/.bin/nodemon ./api/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +23,7 @@
     "eslint-loader": "^1.7.1",
     "eslint-plugin-html": "^3.0.0",
     "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^2.0.1"
+    "eslint-plugin-standard": "^2.0.1",
+    "nodemon": "^1.18.1"
   }
 }
