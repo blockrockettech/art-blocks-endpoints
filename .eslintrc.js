@@ -21,7 +21,7 @@ module.exports = {
         // allow paren-less arrow functions
         'arrow-parens': 0,
 
-        'indent': ['error', 4],
+        'indent': ['warn', 4],
 
         'space-before-function-paren': 0,
         'no-multiple-empty-lines': 0,
