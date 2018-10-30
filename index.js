@@ -178,7 +178,7 @@ app.get('/v2/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
                         return res.json({hash, tokenId, blocknumber, ...details});
                     });
             }
-            return res.json({hash, tokenId, blocknumber});
+            return res.json({hash, tokenId, blocknumber, nickname: "", nicknameRaw: ""});
         })
         .catch(err => console.log(err));
 });
