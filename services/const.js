@@ -25,7 +25,21 @@ const getProvider = (networkName) => {
     return provider;
 };
 
+const getToknAddress = (networkName) => {
+    switch (networkName) {
+        case 'homestead':
+            return "0x7f737b66921d18b008dc9c3a9b933a3bf559f1bc";
+        case 'ropsten':
+            return "0x17a316a4e3f7d3c0289b78973c411ba47f1e8290";
+        case 'rinkeby':
+            return "0x5f21597c2f0ec42ec0738a9b85534eca362f5645";
+        default:
+            throw new Error('unsupported network');
+    }
+};
+
 module.exports = {
     getProvider,
+    getToknAddress,
     BR_INFURA_API_TOKEN
 };
