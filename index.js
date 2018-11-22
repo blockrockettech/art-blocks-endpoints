@@ -170,29 +170,12 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
         .catch(err => console.log(err));
 });
 
+// Fully customisable call for SCA and TOKN
 app.get('/v2/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
     const sacAddress = req.params.sacAddress;
     const toknAddress = req.params.toknAddress;
     const network = req.params.network;
-
-    return SacV2Service.nextHashAndBlock(network, sacAddress)
-        .then(({hash, blocknumber}) => {
-            return ToknService.tokenIdOf(network, toknAddress, hash)
-                .then((result) => {
-                    const tokenId = result.toString(10);
-                    return {hash, tokenId, blocknumber};
-                });
-        })
-        .then(({hash, tokenId, blocknumber}) => {
-            if (tokenId !== '0') {
-                return ToknService.lookupContractDetails(network, toknAddress, tokenId)
-                    .then((details) => {
-                        return res.json({hash, tokenId, blocknumber, ...details});
-                    });
-            }
-            return res.json({hash, tokenId, blocknumber, nickname: "", nicknameRaw: ""});
-        })
-        .catch(err => console.log(err));
+    return v2FullDetails(res, network, sacAddress, toknAddress);
 });
 
 // Looks up TOKN address based on network
@@ -200,25 +183,7 @@ app.get('/v2/:network/sac/:sacAddress', function (req, res) {
     const sacAddress = req.params.sacAddress;
     const network = req.params.network;
     const toknAddress = getToknAddress(network);
-
-    return SacV2Service.nextHashAndBlock(network, sacAddress)
-        .then(({hash, blocknumber}) => {
-            return ToknService.tokenIdOf(network, toknAddress, hash)
-                .then((result) => {
-                    const tokenId = result.toString(10);
-                    return {hash, tokenId, blocknumber};
-                });
-        })
-        .then(({hash, tokenId, blocknumber}) => {
-            if (tokenId !== '0') {
-                return ToknService.lookupContractDetails(network, toknAddress, tokenId)
-                    .then((details) => {
-                        return res.json({hash, tokenId, blocknumber, ...details});
-                    });
-            }
-            return res.json({hash, tokenId, blocknumber, nickname: "", nicknameRaw: ""});
-        })
-        .catch(err => console.log(err));
+    return v2FullDetails(res, network, sacAddress, toknAddress);
 });
 
 // Defaulted to mainnet and short hand version
@@ -226,7 +191,10 @@ app.get('/v2/:sacAddress', function (req, res) {
     const sacAddress = req.params.sacAddress;
     const network = 'homestead';
     const toknAddress = getToknAddress(network);
+    return v2FullDetails(res, network, sacAddress, toknAddress);
+});
 
+const v2FullDetails = (res, network, sacAddress, toknAddress) => {
     return SacV2Service.nextHashAndBlock(network, sacAddress)
         .then(({hash, blocknumber}) => {
             return ToknService.tokenIdOf(network, toknAddress, hash)
@@ -245,7 +213,7 @@ app.get('/v2/:sacAddress', function (req, res) {
             return res.json({hash, tokenId, blocknumber, nickname: "", nicknameRaw: ""});
         })
         .catch(err => console.log(err));
-});
+};
 
 app.get('/:network/sac/:sacAddress/tokn/:toknAddress/override/:tokenId', function (req, res) {
     const tokenId = req.params.tokenId;
