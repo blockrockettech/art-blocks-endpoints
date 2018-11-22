@@ -1,69 +1,22 @@
 const express = require('express');
-const ethers = require('ethers');
 const cors = require('cors');
-const utils = ethers.utils;
 
-const BR_INFURA_API_TOKEN = 'anraJ8h3jfIwcoBEwkgH';
+const ToknService = require('./services/toknService');
+const SacV1Service = require('./services/SacV1Service');
+const SacV2Service = require('./services/SacV2Service');
 
-const homesteadProvider = new ethers.providers.InfuraProvider('homestead', BR_INFURA_API_TOKEN);
-const ropstenProvider = new ethers.providers.InfuraProvider('ropsten', BR_INFURA_API_TOKEN);
-const rinkebyProvider = new ethers.providers.InfuraProvider('rinkeby', BR_INFURA_API_TOKEN);
-
-const getProvider = (networkName) => {
-    let provider;
-    switch (networkName) {
-        case 'homestead':
-            provider = homesteadProvider;
-            break;
-        case 'ropsten':
-            provider = ropstenProvider;
-            break;
-        case 'rinkeby':
-            provider = rinkebyProvider;
-            break;
-        default:
-            throw new Error('unsupported network');
-    }
-
-    return provider;
-};
-
-const sacAbi = require('./sacAbi');
-const toknAbi = require('./toknAbi');
+const {getToknAddress} = require("./services/const");
 
 const app = express();
 
 app.use(cors());
 
-function getTokenIdDetails (contract, tokenId) {
-    return Promise.all([
-        contract.blockhashOf(tokenId),
-        contract.nicknameOf(tokenId),
-        contract.ownerOf(tokenId),
-        contract.tokenURI(tokenId),
-        contract.getApproved(tokenId),
-    ])
-        .then((result) => {
-            let nicknameRaw = result[1].toString(10);
-            return {
-                blockhash: result[0].toString(10),
-                nicknameRaw,
-                nickname: utils.toUtf8String(nicknameRaw).replace(/\0.*$/g, ''),
-                owner: result[2].toString(10),
-                tokenURI: result[3].toString(10),
-                approved: result[4].toString(10),
-            };
-        });
-}
-
 app.get('/tokn/:network/:contractAddress/tokenid/:tokenId', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
     const tokenId = req.params.tokenId;
-    const contract = new ethers.Contract(address, toknAbi, getProvider(network));
 
-    return getTokenIdDetails(contract, tokenId)
+    return ToknService.lookupTokenDetails(network, address, tokenId)
         .then((details) => {
             return res.json(details);
         })
@@ -71,136 +24,135 @@ app.get('/tokn/:network/:contractAddress/tokenid/:tokenId', function (req, res) 
 });
 
 app.get('/tokn/:network/:contractAddress/owner/:owner', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
     const owner = req.params.owner;
-    const contract = new ethers.Contract(address, toknAbi, getProvider(network));
 
-    return Promise.all([
-        contract.hasTokens(owner),
-        contract.tokensOf(owner),
-        contract.firstToken(owner),
-        contract.balanceOf(owner),
-    ])
+    return ToknService.lookupOwnerDetails(network, address, owner)
         .then((result) => {
-            res.json({
-                hasTokens: result[0].toString(10),
-                tokens: result[1].toString(10),
-                firstToken: result[2].toString(10),
-                balance: result[3].toString(10),
-            });
+            res.json(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/tokn/:network/:contractAddress', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
-    const contract = new ethers.Contract(address, toknAbi, getProvider(network));
 
-    return Promise.all([
-        contract.name(),
-        contract.symbol(),
-        contract.owner(),
-        contract.costOfToken(),
-        contract.purchaseTokenPointer(),
-    ])
+    return ToknService.lookupContractDetails(network, address)
         .then((result) => {
-            res.json({
-                name: result[0].toString(10),
-                symbol: result[1].toString(10),
-                owner: result[2].toString(10),
-                costOfToken: result[3].toString(10),
-                purchaseTokenPointer: result[4].toString(10),
-            });
+            res.json(result);
+        })
+        .catch(err => console.log(err));
+});
+
+app.get('/tokn/:network', function (req, res) {
+    const network = req.params.network;
+    const address = getToknAddress(network);
+
+    return ToknService.lookupContractDetails(network, address)
+        .then((result) => {
+            res.json(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/:network/:contractAddress', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
-    const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
-    return contract.nextHash()
+    return SacV1Service.nextHash(network, address)
         .then((result) => {
-            let hashOnly = result[0];
-            res.send(hashOnly);
+            res.send(result);
+        })
+        .catch(err => console.log(err));
+});
+
+app.get('/v2/:network/:contractAddress', function (req, res) {
+    const address = req.params.contractAddress;
+    const network = req.params.network;
+
+    return SacV2Service.nextHash(network, address)
+        .then((result) => {
+            res.send(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/:network/:contractAddress/json', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
-    const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
-    return contract.nextHash()
+    return SacV1Service.nextHash(network, address, true)
         .then((result) => {
-            let hashOnly = result[0];
-            res.json({hash: hashOnly});
+            res.json(result);
+        })
+        .catch(err => console.log(err));
+});
+
+app.get('/v2/:network/:contractAddress/json', function (req, res) {
+    const address = req.params.contractAddress;
+    const network = req.params.network;
+
+    return SacV1Service.nextHash(network, address, true)
+        .then((result) => {
+            res.json(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/:network/:contractAddress/blocknumber', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
-    const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
-    return Promise.all([contract.nextHash(), contract.blocknumber()])
+    return SacV1Service.nextHashAndBlock(network, address)
         .then((result) => {
-            res.json({hash: result[0][0], blocknumber: result[1].toString(10)});
+            res.json(result);
+        })
+        .catch(err => console.log(err));
+});
+
+app.get('/v2/:network/:contractAddress/blocknumber', function (req, res) {
+    const address = req.params.contractAddress;
+    const network = req.params.network;
+
+    return SacV2Service.nextHashAndBlock(network, address)
+        .then((result) => {
+            res.json(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/:network/:contractAddress/details', function (req, res) {
-
     const address = req.params.contractAddress;
     const network = req.params.network;
-    const contract = new ethers.Contract(address, sacAbi, getProvider(network));
 
-    return Promise.all([
-        contract.pricePerBlockInWei(),
-        contract.maxBlockPurchaseInOneGo(),
-        contract.blocknumber(),
-        contract.lastPurchasedBlock(),
-        contract.nextPurchasableBlocknumber(),
-        contract.token(),
-        contract.onlyShowPurchased()
-    ])
+    return SacV1Service.contractDetails(network, address)
         .then((result) => {
-            res.json({
-                pricePerBlockInWei: result[0].toString(10),
-                maxBlockPurchaseInOneGo: result[1].toString(10),
-                blocknumber: result[2].toString(10),
-                lastPurchasedBlock: result[3].toString(10),
-                nextPurchasableBlocknumber: result[4].toString(10),
-                token: result[5],
-                onlyShowPurchased: result[6]
-            });
+            res.json(result);
+        })
+        .catch(err => console.log(err));
+});
+
+app.get('/v2/:network/:contractAddress/details', function (req, res) {
+    const address = req.params.contractAddress;
+    const network = req.params.network;
+
+    return SacV2Service.contractDetails(network, address)
+        .then((result) => {
+            res.json(result);
         })
         .catch(err => console.log(err));
 });
 
 app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
-
     const sacAddress = req.params.sacAddress;
     const toknAddress = req.params.toknAddress;
     const network = req.params.network;
-    const sacContract = new ethers.Contract(sacAddress, sacAbi, getProvider(network));
-    const toknContract = new ethers.Contract(toknAddress, toknAbi, getProvider(network));
 
-    return sacContract.nextHash()
-        .then((result) => result[0])
+    return SacV1Service.nextHash(network, sacAddress)
         .then((hash) => {
-            return toknContract.tokenIdOf(hash)
+            return ToknService.tokenIdOf(network, toknAddress, hash)
                 .then((result) => {
                     const tokenId = result.toString(10);
                     return {hash, tokenId};
@@ -208,7 +160,7 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
         })
         .then(({hash, tokenId}) => {
             if (tokenId !== '0') {
-                return getTokenIdDetails(toknContract, tokenId)
+                return ToknService.lookupContractDetails(network, toknAddress, tokenId)
                     .then((details) => {
                         return res.json({hash, tokenId, ...details});
                     });
@@ -218,19 +170,60 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
         .catch(err => console.log(err));
 });
 
-app.get('/:network/sac/:sacAddress/tokn/:toknAddress/override/:tokenId', function (req, res) {
+// Fully customisable call for SCA and TOKN
+app.get('/v2/:network/sac/:sacAddress/tokn/:toknAddress', function (req, res) {
+    const sacAddress = req.params.sacAddress;
+    const toknAddress = req.params.toknAddress;
+    const network = req.params.network;
+    return v2FullDetails(res, network, sacAddress, toknAddress);
+});
 
+// Looks up TOKN address based on network
+app.get('/v2/:network/sac/:sacAddress', function (req, res) {
+    const sacAddress = req.params.sacAddress;
+    const network = req.params.network;
+    const toknAddress = getToknAddress(network);
+    return v2FullDetails(res, network, sacAddress, toknAddress);
+});
+
+// Defaulted to mainnet and short hand version
+app.get('/v2/:sacAddress', function (req, res) {
+    const sacAddress = req.params.sacAddress;
+    const network = 'homestead';
+    const toknAddress = getToknAddress(network);
+    return v2FullDetails(res, network, sacAddress, toknAddress);
+});
+
+const v2FullDetails = (res, network, sacAddress, toknAddress) => {
+    return SacV2Service.nextHashAndBlock(network, sacAddress)
+        .then(({hash, blocknumber}) => {
+            return ToknService.tokenIdOf(network, toknAddress, hash)
+                .then((result) => {
+                    const tokenId = result.toString(10);
+                    return {hash, tokenId, blocknumber};
+                });
+        })
+        .then(({hash, tokenId, blocknumber}) => {
+            if (tokenId !== '0') {
+                return ToknService.lookupContractDetails(network, toknAddress, tokenId)
+                    .then((details) => {
+                        return res.json({hash, tokenId, blocknumber, ...details});
+                    });
+            }
+            return res.json({hash, tokenId, blocknumber, nickname: "", nicknameRaw: ""});
+        })
+        .catch(err => console.log(err));
+};
+
+app.get('/:network/sac/:sacAddress/tokn/:toknAddress/override/:tokenId', function (req, res) {
     const tokenId = req.params.tokenId;
     const sacAddress = req.params.sacAddress;
     const toknAddress = req.params.toknAddress;
     const network = req.params.network;
-    const sacContract = new ethers.Contract(sacAddress, sacAbi, getProvider(network));
-    const toknContract = new ethers.Contract(toknAddress, toknAbi, getProvider(network));
 
-    return sacContract.nextHash()
-        .then((result) => result[0])
+    return SacV1Service.nextHash(network, sacAddress)
         .then((hash) => {
-            return toknContract.tokenIdOf(hash)
+            return ToknService.tokenIdOf(network, toknAddress, hash)
                 .then((result) => {
                     // const tokenId = result.toString(10);
                     // const tokenId = "3730171";
@@ -239,7 +232,7 @@ app.get('/:network/sac/:sacAddress/tokn/:toknAddress/override/:tokenId', functio
         })
         .then(({hash, tokenId}) => {
             if (tokenId !== '0') {
-                return getTokenIdDetails(toknContract, tokenId)
+                return ToknService.lookupContractDetails(network, toknAddress, tokenId)
                     .then((details) => {
                         return res.json({hash, tokenId, ...details});
                     });
